@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👨‍👩‍👧‍👦 İngilizce Aile Eşleştirme Oyunu</title>
+    
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif; /* Daha çocuk dostu bir font */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #ffe0b2; /* Açık Turuncu Arka Plan */
+            margin: 0;
+            color: #4e342e; /* Koyu Kahve Yazı Rengi */
+        }
+
+        .game-container {
+            background-color: #fff3e0; /* Daha açık turuncu konteyner */
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            width: 90%;
+            max-width: 600px;
+            border: 3px solid #ffcc80; /* Turuncu çerçeve */
+        }
+
+        h1 {
+            color: #d84315; /* Koyu Turuncu Başlık */
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .instruction {
+            font-size: 1.1em;
+            margin-bottom: 25px;
+            color: #6d4c41;
+        }
+
+        #image-display {
+            width: 200px;
+            height: 200px;
+            margin: 25px auto;
+            background-color: #ffffff;
+            border: 2px solid #ffab40;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3em; /* Sadece kelime gösteriliyorsa font boyutu */
+            font-weight: bold;
+            color: #d84315;
+        }
+
+        #image-display img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+        }
+
+        #options-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .option-button {
+            padding: 15px 10px;
+            font-size: 1.3em;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            border-radius: 10px;
+            background-color: #ff9800; /* Parlak Turuncu Düğme */
+            color: white;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 4px #e65100; /* Hafif gölge */
+        }
+
+        .option-button:hover:not(:disabled) {
+            background-color: #fb8c00;
+            transform: translateY(-2px);
+            box-shadow: 0 6px #e65100;
+        }
+
+        .option-button:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 2px #e65100;
+        }
+
+        .option-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .info-area {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px dashed #ffcc80; /* Kesik çizgi ayırıcı */
+        }
+
+        #score {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #d84315;
+        }
+
+        #feedback {
+            font-weight: 600;
+            min-height: 25px;
+            margin-top: 15px;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>👨‍👩‍👧‍👦 Family Match Game</h1>
+        <p class="instruction">Resimdeki aile üyesinin İngilizce adını seçin!</p>
+        
+        <div id="image-display">
+            </div>
+        
+        <div id="options-container">
+            </div>
+        
+        <div class="info-area">
+            <p>Puan: <span id="score">0</span></p>
+            <p id="feedback"></p>
+        </div>
+    </div>
+
+    <script>
+        // Aile üyeleri listesi (name: İngilizce kelime, img: resim URL'si)
+        // Not: Gerçek resim URL'leri eklemeniz gerekecek.
+        // Şimdilik sadece kelimeleri kullanacağız.
+        const familyMembers = [
+            { name: 'Mother', img: 'https://via.placeholder.com/200x200?text=Mother' },
+            { name: 'Father', img: 'https://via.placeholder.com/200x200?text=Father' },
+            { name: 'Brother', img: 'https://via.placeholder.com/200x200?text=Brother' },
+            { name: 'Sister', img: 'https://via.placeholder.com/200x200?text=Sister' },
+            { name: 'Grandmother', img: 'https://via.placeholder.com/200x200?text=Grandmother' },
+            { name: 'Grandfather', img: 'https://via.placeholder.com/200x200?text=Grandfather' },
+            { name: 'Son', img: 'https://via.placeholder.com/200x200?text=Son' },
+            { name: 'Daughter', img: 'https://via.placeholder.com/200x200?text=Daughter' },
+            { name: 'Aunt', img: 'https://via.placeholder.com/200x200?text=Aunt' },
+            { name: 'Uncle', img: 'https://via.placeholder.com/200x200?text=Uncle' },
+            { name: 'Cousin', img: 'https://via.placeholder.com/200x200?text=Cousin' }
+        ];
+
+        let currentCorrectMember = null;
+        let score = 0;
+
+        const imageDisplay = document.getElementById('image-display');
+        const optionsContainer = document.getElementById('options-container');
+        const scoreDisplay = document.getElementById('score');
+        const feedbackDisplay = document.getElementById('feedback');
+
+        // --- Yardımcı Fonksiyon ---
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // --- Oyun Mantığı ---
+        function startNewRound() {
+            // Butonları temizle ve geri bildirimi sıfırla
+            optionsContainer.innerHTML = ''; 
+            feedbackDisplay.textContent = '';
+
+            // 1. Doğru aile üyesini rastgele seç
+            const allMembersShuffled = shuffle([...familyMembers]);
+            currentCorrectMember = allMembersShuffled[0];
+
+            // 2. Görseli göster
+            imageDisplay.innerHTML = `<img src="${currentCorrectMember.img}" alt="${currentCorrectMember.name}">`;
+            
+            // 3. Seçenekleri hazırla (Doğru üye + 3 rastgele yanlış üye)
+            const options = allMembersShuffled.slice(0, 4); 
+            const shuffledOptions = shuffle(options); 
+
+            // 4. Seçenek butonlarını oluştur
+            shuffledOptions.forEach(member => {
+                const button = document.createElement('button');
+                button.textContent = member.name;
+                button.classList.add('option-button');
+                button.addEventListener('click', checkAnswer);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function checkAnswer(event) {
+            const selectedMemberName = event.target.textContent;
+            
+            // Tüm butonları devre dışı bırak
+            document.querySelectorAll('.option-button').forEach(btn => btn.disabled = true);
+
+            if (selectedMemberName === currentCorrectMember.name) {
+                // Doğru cevap
+                score++;
+                scoreDisplay.textContent = score;
+                feedbackDisplay.textContent = `✅ Correct! That's ${currentCorrectMember.name}.`;
+                event.target.style.backgroundColor = '#4CAF50'; // Yeşil
+                
+                setTimeout(startNewRound, 1500); // 1.5 saniye sonra yeni tur
+            } else {
+                // Yanlış cevap
+                feedbackDisplay.textContent = `❌ Oops! It's ${currentCorrectMember.name}.`;
+                event.target.style.backgroundColor = '#f44336'; // Kırmızı
+
+                // Doğru cevabı işaretle
+                document.querySelectorAll('.option-button').forEach(btn => {
+                    if (btn.textContent === currentCorrectMember.name) {
+                        btn.style.backgroundColor = '#4CAF50'; // Doğru olanı yeşil yap
+                    }
+                });
+
+                setTimeout(startNewRound, 2500); // 2.5 saniye sonra yeni tur
+            }
+        }
+
+        // Oyunu Başlat
+        startNewRound();
+    </script>
+</body>
+</html>
